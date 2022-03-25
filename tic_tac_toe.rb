@@ -6,23 +6,41 @@
 # checkForVictory method
 # player class
 
-# playerClass
-class Player
-  def initialize(name, marker)
-    @name = name
-    @marker = marker
-  end
-end
-
 # boardClass
 class Board
-  attr_reader :game_board
+  private
 
-  def initialize(player_one = Player.new('Spieler 1', 'x'), player_two = Player.new('Spieler 2', 'o'))
+  PLAYER_TOKENS = [1, -1].freeze
+  attr_reader :game_board, :players
+  attr_accessor :turn, :game_running
+
+  public
+
+  def initialize(player_one = 'Spieler 1', player_two = 'Spieler 2')
     @game_board = self.class.create_game_board
-    @player_one = player_one
-    @player_two = player_two
+    # @player_one = player_one
+    # @player_two = player_two
+    @players = [player_one, player_two]
     @game_running = true
+    @turn = 0
+  end
+
+  def play
+    print_board
+    puts ''
+    game_loop while game_running
+  end
+
+  def game_loop
+    turn_message
+    ask_for_mark
+    print_board
+    if victory?
+      self.game_running = false
+      victory_message
+    end
+    self.turn = turn + 1
+    puts ''
   end
 
   # should become private later, now public for testing
@@ -83,14 +101,38 @@ class Board
     false
   end
 
+  def victory_message
+    victor = players[turn % 2]
+    puts "#{victor} wins!"
+  end
+
+  def turn_message
+    player = players[turn % 2]
+    puts "It's #{player}'s turn!"
+  end
+
   def self.create_game_board
     Array.new(3) { |_i| [0, 0, 0] }
+  end
+
+  # TODO: Error handling for non numbers and numbers out of range and already checked boxes
+  def ask_for_number
+    gets.chomp.to_i
+  end
+
+  def ask_for_mark
+    puts 'Enter line number:'
+    line_number = ask_for_number
+    puts 'Enter column number:'
+    column_number = ask_for_number
+    mark_box(line_number, column_number)
+  end
+
+  def mark_box(line_number, column_number)
+    game_board[line_number][column_number] = PLAYER_TOKENS[turn % 2]
   end
 end
 
 new_board = Board.new
 # p new_board.gameBoard
-new_board.print_board
-puts new_board.victory_diagonal_one?
-puts new_board.victory_verticals?
-new_board.print_board
+new_board.play
